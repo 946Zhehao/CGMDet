@@ -1,0 +1,239 @@
+# parameters
+#nc: 80  # number of classes
+nc: 10  # number of classes
+depth_multiple: 1.0  # model depth multiple
+width_multiple: 1.0  # layer channel multiple
+
+# anchors
+anchors:
+  - [12,16, 19,36, 40,28]  # P3/8
+  - [36,75, 76,55, 72,146]  # P4/16
+  - [142,110, 192,243, 459,401]  # P5/32
+
+#  mogai-26-BiFusion      mogai-36-CAese_Backbone
+
+# yolov7 backbone
+backbone:
+  # [from, number, module, args]    [该层的输入（-1就代表上一层的输出，-2就是上上一层的输出），该层的数量，类名，[输出通道数，卷积核尺寸，步长，padding]]
+  [ [ -1, 1, Conv, [ 32, 3, 1 ] ],  # 0
+    [ -1, 1, Conv, [ 64, 3, 2 ] ],  # 1-P1/2
+    [ -1, 1, Conv, [ 64, 3, 1 ] ],
+    [ -1, 1, Conv, [ 128, 3, 2 ] ],  # 3-P2/4
+    # CBS end
+
+    # ELAN start
+    [ -1, 1, GlobalPooling, [ ] ],
+    [ -1, 1, Conv, [ 64, 1, 1 ] ],
+    [ -3, 1, Conv, [ 64, 1, 1 ] ],
+    [ -1, 1, Conv, [ 64, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 64 ] ],
+    [ -1, 1, Conv, [ 64, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 64 ] ],
+    [ -1, 1, Conv, [ 64, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 64 ] ],
+    [ -1, 1, Conv, [ 64, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 64 ] ],
+    [ [ -1, -5, -9, -10 ], 1, Concat, [ 1 ] ],
+    [ -1, 1, Conv, [ 256, 1, 1 ] ],  # 16
+    # ELAN end
+
+    # MP1 start
+    [ -1, 1, MP, [ ] ],
+    [ -1, 1, Conv, [ 128, 1, 1 ] ],
+    [ -3, 1, Conv, [ 128, 1, 1 ] ],
+    [ -1, 1, Conv, [ 128, 3, 2 ] ],
+    [ [ -1, -3 ], 1, Concat, [ 1 ] ],  # 21-P3/8
+    # MP1 end
+
+    # ELAN start
+    [ -1, 1, GlobalPooling, [ ] ],
+    [ -1, 1, Conv, [ 128, 1, 1 ] ],
+    [ -3, 1, Conv, [ 128, 1, 1 ] ],
+    [ -1, 1, Conv, [ 128, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 128 ] ],
+    [ -1, 1, Conv, [ 128, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 128 ] ],
+    [ -1, 1, Conv, [ 128, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 128 ] ],
+    [ -1, 1, Conv, [ 128, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 128 ] ],
+    [ [ -1, -5, -9, -10 ], 1, Concat, [ 1 ] ],
+    [ -1, 1, Conv, [ 512, 1, 1 ] ],  # 34
+    # ELAN end
+
+    # MP1 start
+    [ -1, 1, MP, [ ] ],
+    [ -1, 1, Conv, [ 256, 1, 1 ] ],
+    [ -3, 1, Conv, [ 256, 1, 1 ] ],
+    [ -1, 1, Conv, [ 256, 3, 2 ] ],
+    [ [ -1, -3 ], 1, Concat, [ 1 ] ],  # 39-P4/16
+    # MP1 end
+
+    # ELAN start
+    [ -1, 1, GlobalPooling, [ ] ],
+    [ -1, 1, Conv, [ 256, 1, 1 ] ],
+    [ -3, 1, Conv, [ 256, 1, 1 ] ],
+    [ -1, 1, Conv, [ 256, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 256 ] ],
+    [ -1, 1, Conv, [ 256, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 256 ] ],
+    [ -1, 1, Conv, [ 256, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 256 ] ],
+    [ -1, 1, Conv, [ 256, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 256 ] ],
+    [ [ -1, -5, -9, -10 ], 1, Concat, [ 1 ] ],
+    [ -1, 1, Conv, [ 1024, 1, 1 ] ],  # 52
+    # ELAN end
+
+    # MP1 start
+    [ -1, 1, MP, [ ] ],
+    [ -1, 1, Conv, [ 512, 1, 1 ] ],
+    [ -3, 1, Conv, [ 512, 1, 1 ] ],
+    [ -1, 1, Conv, [ 512, 3, 2 ] ],
+    [ [ -1, -3 ], 1, Concat, [ 1 ] ],  # 57-P5/32
+    # MP1 end
+
+    # ELAN start
+    [ -1, 1, GlobalPooling, [ ] ],
+    [ -1, 1, Conv, [ 256, 1, 1 ] ],
+    [ -3, 1, Conv, [ 256, 1, 1 ] ],
+    [ -1, 1, Conv, [ 256, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 256 ] ],
+    [ -1, 1, Conv, [ 256, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 256 ] ],
+    [ -1, 1, Conv, [ 256, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 256 ] ],
+    [ -1, 1, Conv, [ 256, 3, 1 ] ],
+    [ -1, 1, CoordAttention, [ 256 ] ],
+    [ [ -1, -5, -9, -10 ], 1, Concat, [ 1 ] ],
+    [ -1, 1, Conv, [ 1024, 1, 1 ] ],  # 70
+    # ELAN end
+  ]
+
+# yolov7 head
+head:
+  [[-1, 1, SPPCSPC, [512]], # 71
+
+   # 上采样融合特征图 start
+   [-1, 1, Conv, [256, 1, 1]],
+   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
+   [52, 1, Conv, [256, 1, 1]], # route backbone P4
+   [[-1, -2], 1, BiFusion, [256]],   # 75
+   # 上采样融合特征图 end
+
+    # ELAN-H start
+   [ -1, 1, Conv, [ 32, 1, 1 ] ],
+   [ -2, 1, Conv, [ 32, 1, 1 ] ],
+   [ -1, 1, Conv, [ 32, 3, 1 ] ],
+   [ -1, 1, Conv, [ 32, 3, 1 ] ],
+   [ -1, 1, Conv, [ 32, 3, 1 ] ],
+   [ -1, 1, Conv, [ 32, 3, 1 ] ],
+   [ [ -1, -2, -3, -4, -5, -6 ], 1, Concat, [ 1 ] ],
+   [ -1, 1, Conv, [ 256, 1, 1 ] ], # 83   P4td
+    # ELAN-H end
+
+   # 上采样融合特征图 start
+   [-1, 1, Conv, [128, 1, 1]],
+   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
+   [34, 1, Conv, [128, 1, 1]], # route backbone P3
+   [[-1, -2], 1, BiFusion, [128]],   # 87
+   # 上采样融合特征图 end
+
+    # ELAN-H start
+   [ -1, 1, Conv, [ 32, 1, 1 ] ],
+   [ -2, 1, Conv, [ 32, 1, 1 ] ],
+   [ -1, 1, Conv, [ 32, 3, 1 ] ],
+   [ -1, 1, Conv, [ 32, 3, 1 ] ],
+   [ -1, 1, Conv, [ 32, 3, 1 ] ],
+   [ -1, 1, Conv, [ 32, 3, 1 ] ],
+   [ [ -1, -2, -3, -4, -5, -6 ], 1, Concat, [ 1 ] ],
+   [ -1, 1, Conv, [ 128, 1, 1 ] ], # 95  P3td
+    # ELAN-H end
+
+    # 上采样融合特征图 start
+   [-1, 1, Conv, [64, 1, 1]],
+   [-1, 1, nn.Upsample, [None, 2, 'nearest']],
+   [16, 1, Conv, [64, 1, 1 ]], # route backbone P2
+   [[-1, -2], 1, BiFusion, [64]],  # 99
+    # 上采样融合特征图 end
+
+    # ELAN-H start
+   [ -1, 1, Conv, [ 32, 1, 1 ] ],
+   [ -2, 1, Conv, [ 32, 1, 1 ] ],
+   [ -1, 1, Conv, [ 32, 3, 1 ] ],
+   [ -1, 1, Conv, [ 32, 3, 1 ] ],
+   [ -1, 1, Conv, [ 32, 3, 1 ] ],
+   [ -1, 1, Conv, [ 32, 3, 1 ] ],
+   [ [ -1, -2, -3, -4, -5, -6 ], 1, Concat, [ 1 ] ],
+   [ -1, 1, Conv, [ 128, 1, 1 ] ], # 107  P2td
+    # ELAN-H end
+
+    # 下采样融合特征图 start
+   [-1, 1, MP, []],
+   [-1, 1, Conv, [64, 1, 1]],
+   [-3, 1, Conv, [64, 1, 1]],
+   [-1, 1, Conv, [64, 3, 2]],
+   [[-1, -3], 1, Concat, [1]],
+   [34, 1, Conv, [128, 1, 1]],
+   [[-1, -2, 95], 1, BiFusion, [128]],   # 114
+    # 下采样融合特征图 end
+
+    # ELAN-H start
+   [-1, 1, Conv, [64, 1, 1]],
+   [-2, 1, Conv, [64, 1, 1]],
+   [-1, 1, Conv, [64, 3, 1]],
+   [-1, 1, Conv, [64, 3, 1]],
+   [-1, 1, Conv, [64, 3, 1]],
+   [-1, 1, Conv, [64, 3, 1]],
+   [[-1, -2, -3, -4, -5, -6], 1, Concat, [1]],
+   [-1, 1, Conv, [128, 1, 1]], # 122
+    # ELAN-H end
+
+   # 下采样融合特征图 start
+   [-1, 1, MP, []],
+   [-1, 1, Conv, [128, 1, 1]],
+   [-3, 1, Conv, [128, 1, 1]],
+   [-1, 1, Conv, [128, 3, 2]],
+   [[-1, -3], 1, Concat, [1]],  # route
+   [52, 1, Conv, [256, 1, 1]],
+   [[-1, -2, 83], 1, BiFusion, [256]],   # 129
+   # 下采样融合特征图 end
+
+   # ELAN-H start
+   [-1, 1, Conv, [128, 1, 1]],
+   [-2, 1, Conv, [128, 1, 1]],
+   [-1, 1, Conv, [128, 3, 1]],
+   [-1, 1, Conv, [128, 3, 1]],
+   [-1, 1, Conv, [128, 3, 1]],
+   [-1, 1, Conv, [128, 3, 1]],
+   [[-1, -2, -3, -4, -5, -6], 1, Concat, [1]],
+   [-1, 1, Conv, [256, 1, 1]], # 137
+   # ELAN-H end
+
+   # 下采样融合特征图 start
+   [-1, 1, MP, []],
+   [-1, 1, Conv, [256, 1, 1]],
+   [-3, 1, Conv, [256, 1, 1]],
+   [-1, 1, Conv, [256, 3, 2]],
+   [[-1, -3], 1, Concat, [1]],   # route SPP
+   [70, 1, Conv, [512, 1, 1]],
+   [[-1, -2, 71], 1, BiFusion, [512]],   # 144
+   # 下采样融合特征图 end
+
+   # ELAN-H start
+   [-1, 1, Conv, [256, 1, 1]],
+   [-2, 1, Conv, [256, 1, 1]],
+   [-1, 1, Conv, [256, 3, 1]],
+   [-1, 1, Conv, [256, 3, 1]],
+   [-1, 1, Conv, [256, 3, 1]],
+   [-1, 1, Conv, [256, 3, 1]],
+   [[-1, -2, -3, -4, -5, -6], 1, Concat, [1]],
+   [-1, 1, Conv, [512, 1, 1]], # 152
+   # ELAN-H end
+
+   [122, 1, RepConv, [256, 3, 1]],
+   [137, 1, RepConv, [512, 3, 1]],
+   [152, 1, RepConv, [1024, 3, 1]],
+
+   [[153,154,155], 1, IDetect, [nc, anchors]],   # Detect(P3, P4, P5)
+  ]
